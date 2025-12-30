@@ -521,3 +521,5 @@ if __name__ == "__main__":
     print("正在测试 RAGSystem...")
     rag = RAGSystem()
     print("初始化完成。请在 main.py 中运行完整应用。")
+    rag.init_qa_chain()
+    print(rag.ask_question("糖尿病是什么"))
