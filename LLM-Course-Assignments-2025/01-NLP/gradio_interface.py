@@ -188,7 +188,7 @@ class RAGInterface:
             logger.error(f"清空知识库失败: {str(e)}")
             return f"清空失败: {str(e)}"
 
-    def chat_with_rag(self, message: str, history: List[List[str]], temperature: float) -> Tuple[str, List[List[str]]]:
+    def chat_with_rag(self, message: str, history: List[List[str]], temperature: float) -> Tuple[str, List[List[str]], str]:
         """
         与RAG系统对话
 
@@ -198,10 +198,10 @@ class RAGInterface:
             temperature: 生成温度
 
         Returns:
-            Tuple: (空字符串, 更新后的对话历史)
+            Tuple: (空字符串, 更新后的对话历史, 检索到的文档片段)
         """
         if not message.strip():
-            return "", history
+            return "", history, ""
 
         # 如果RAG系统未初始化，先初始化它
         if self.rag_system is None:
@@ -212,11 +212,11 @@ class RAGInterface:
                 if not success:
                     error_response = "RAG系统初始化失败，请检查配置"
                     history.append([message, error_response])
-                    return "", history
+                    return "", history, ""
             except Exception as e:
                 error_response = f"RAG系统初始化失败: {str(e)}"
                 history.append([message, error_response])
-                return "", history
+                return "", history, ""
 
         # 如果问答链未初始化，先初始化它
         if not self.rag_system.qa_chain:
@@ -225,11 +225,11 @@ class RAGInterface:
                 if not success:
                     error_response = "问答链初始化失败，请检查配置"
                     history.append([message, error_response])
-                    return "", history
+                    return "", history, ""
             except Exception as e:
                 error_response = f"问答链初始化失败: {str(e)}"
                 history.append([message, error_response])
-                return "", history
+                return "", history, ""
 
         try:
             # 更新温度参数
@@ -238,6 +238,9 @@ class RAGInterface:
 
             # 获取回答
             result = self.rag_system.ask_question(message)
+
+            # 构建检索结果显示
+            retrieved_docs_display = ""
 
             if result["success"]:
                 # 构建回答，包含来源信息
@@ -254,6 +257,30 @@ class RAGInterface:
                     else:
                         mode_info = "\n\n📚 **知识库模式**: 基于向量检索回答"
 
+                # 构建检索结果展示区
+                if result["source_documents"]:
+                    retrieved_docs_display = "## 📚 检索到的文档片段\n\n"
+
+                    for idx, source in enumerate(result["source_documents"], 1):
+                        retrieved_docs_display += f"### 📄 片段 {idx}\n\n"
+
+                        # 添加元数据信息
+                        if 'metadata' in source and 'source' in source['metadata']:
+                            file_name = os.path.basename(source['metadata']['source'])
+                            retrieved_docs_display += f"**来源文件**: `{file_name}`\n\n"
+
+                        # 添加文档内容
+                        content = source.get('content', source.get('page_content', ''))
+                        retrieved_docs_display += f"**内容**:\n\n```\n{content}\n```\n\n"
+
+                        # 添加相似度分数（如果有）
+                        if 'score' in source:
+                            retrieved_docs_display += f"**相似度**: {source['score']:.4f}\n\n"
+
+                        retrieved_docs_display += "---\n\n"
+                else:
+                    retrieved_docs_display = "## ℹ️ 无需检索\n\n当前问题无需检索文档，直接使用大模型知识回答。"
+
                 if result["source_documents"]:
                     answer += "\n\n📚 **参考来源:**\n"
                     # 去重文件名
@@ -268,7 +295,8 @@ class RAGInterface:
                                 file_references.append(file_name)
                         else:
                             # 对于没有文件信息的片段，仍然添加到引用中
-                            content_snippet = f"文档片段: {source['content'][:100]}..."
+                            content = source.get('content', source.get('page_content', ''))
+                            content_snippet = f"文档片段: {content[:100]}..."
                             if content_snippet not in file_references:
                                 file_references.append(content_snippet)
 
@@ -283,6 +311,7 @@ class RAGInterface:
 
             else:
                 answer = result["answer"]
+                retrieved_docs_display = "## ⚠️ 处理失败\n\n未能成功获取回答。"
 
             # 更新对话历史
             history.append([message, answer])
@@ -291,8 +320,9 @@ class RAGInterface:
             error_response = f"处理消息时出现错误: {str(e)}"
             logger.error(error_response)
             history.append([message, error_response])
+            retrieved_docs_display = f"## ❌ 错误\n\n{error_response}"
 
-        return "", history
+        return "", history, retrieved_docs_display
 
     def clear_chat(self) -> List:
         """
@@ -460,6 +490,45 @@ class RAGInterface:
             border-radius: 15px 15px 15px 5px !important;
             border: 1px solid rgba(102, 126, 234, 0.15) !important;
         }
+
+        /* 检索结果容器样式 */
+        .retrieved-docs-container {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%) !important;
+            border: 2px solid rgba(102, 126, 234, 0.2) !important;
+            border-radius: 12px !important;
+            padding: 15px !important;
+            margin: 15px 0 !important;
+            max-height: 400px !important;
+            overflow-y: auto !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.1) !important;
+        }
+
+        .retrieved-docs-container h2 {
+            color: #667eea !important;
+            border-bottom: 2px solid rgba(102, 126, 234, 0.2) !important;
+            padding-bottom: 10px !important;
+            margin-bottom: 15px !important;
+        }
+
+        .retrieved-docs-container h3 {
+            color: #764ba2 !important;
+            margin-top: 15px !important;
+        }
+
+        .retrieved-docs-container code {
+            background: rgba(102, 126, 234, 0.1) !important;
+            padding: 2px 6px !important;
+            border-radius: 4px !important;
+            color: #667eea !important;
+        }
+
+        .retrieved-docs-container pre {
+            background: rgba(102, 126, 234, 0.05) !important;
+            border-left: 3px solid #667eea !important;
+            padding: 10px !important;
+            border-radius: 6px !important;
+            overflow-x: auto !important;
+        }
         """
 
         with gr.Blocks(css=custom_css, title="RAG智能对话系统") as interface:
@@ -570,6 +639,13 @@ class RAGInterface:
                         elem_classes=["chat-container"]
                     )
 
+                    # 检索结果展示区
+                    retrieved_docs = gr.Markdown(
+                        value="## 📚 检索结果\n\n_提问后，这里将显示检索到的相关文档片段_",
+                        label="检索到的文档片段",
+                        elem_classes=["retrieved-docs-container"]
+                    )
+
                     with gr.Row():
                         msg_input = gr.Textbox(
                             label="输入您的问题",
@@ -622,18 +698,21 @@ class RAGInterface:
             send_btn.click(
                 fn=self.chat_with_rag,
                 inputs=[msg_input, chatbot, temperature_slider],
-                outputs=[msg_input, chatbot]
+                outputs=[msg_input, chatbot, retrieved_docs]
             )
 
             msg_input.submit(
                 fn=self.chat_with_rag,
                 inputs=[msg_input, chatbot, temperature_slider],
-                outputs=[msg_input, chatbot]
+                outputs=[msg_input, chatbot, retrieved_docs]
             )
 
             clear_btn.click(
                 fn=self.clear_chat,
                 outputs=[chatbot]
+            ).then(
+                fn=lambda: "## 📚 检索结果\n\n_提问后，这里将显示检索到的相关文档片段_",
+                outputs=[retrieved_docs]
             ).then(
                 fn=self.get_system_status,
                 outputs=[system_status]
