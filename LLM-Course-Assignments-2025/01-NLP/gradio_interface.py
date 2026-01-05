@@ -345,20 +345,120 @@ class RAGInterface:
         Returns:
             gr.Blocks: Gradio界面对象
         """
-        # 自定义CSS样式
+        # 自定义CSS样式 - 现代蓝紫渐变风格
         custom_css = """
+        /* 全局容器样式 */
         .gradio-container {
-            max-width: 1200px !important;
+            max-width: 1400px !important;
             margin: auto !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
         }
+
+        /* 主标题渐变效果 */
+        .gradio-container h1 {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            background-clip: text !important;
+            font-weight: 700 !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* 聊天容器优化 */
         .chat-container {
-            height: 500px !important;
+            height: 600px !important;
+            border-radius: 15px !important;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.15) !important;
+            border: 1px solid rgba(102, 126, 234, 0.2) !important;
         }
+
+        /* 文件上传区域美化 */
         .upload-area {
-            border: 2px dashed #ccc !important;
-            border-radius: 10px !important;
-            padding: 20px !important;
+            border: 2px dashed #667eea !important;
+            border-radius: 15px !important;
+            padding: 25px !important;
             text-align: center !important;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2 !important;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%) !important;
+            transform: translateY(-2px) !important;
+        }
+
+        /* 按钮样式优化 */
+        .gradio-button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border: none !important;
+            border-radius: 10px !important;
+            padding: 10px 20px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .gradio-button.primary:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4) !important;
+        }
+
+        .gradio-button.secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+            border: none !important;
+            border-radius: 10px !important;
+            font-weight: 600 !important;
+            box-shadow: 0 4px 15px rgba(240, 147, 251, 0.2) !important;
+        }
+
+        /* 输入框样式 */
+        .gradio-textbox input, .gradio-textbox textarea {
+            border-radius: 10px !important;
+            border: 2px solid rgba(102, 126, 234, 0.2) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .gradio-textbox input:focus, .gradio-textbox textarea:focus {
+            border-color: #667eea !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        }
+
+        /* 滑块样式 */
+        .gradio-slider input[type="range"]::-webkit-slider-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+        /* 状态框美化 */
+        .gradio-textbox:not(.input) {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.03) 0%, rgba(118, 75, 162, 0.03) 100%) !important;
+            border-radius: 12px !important;
+            border: 1px solid rgba(102, 126, 234, 0.15) !important;
+        }
+
+        /* 卡片阴影效果 */
+        .gradio-column {
+            border-radius: 15px !important;
+            padding: 20px !important;
+        }
+
+        /* Markdown内容样式 */
+        .markdown-text h3 {
+            color: #667eea !important;
+            font-weight: 600 !important;
+            margin-top: 15px !important;
+        }
+
+        /* 聊天消息气泡优化 */
+        .message.user {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            border-radius: 15px 15px 5px 15px !important;
+        }
+
+        .message.bot {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.08) 0%, rgba(118, 75, 162, 0.08) 100%) !important;
+            border-radius: 15px 15px 15px 5px !important;
+            border: 1px solid rgba(102, 126, 234, 0.15) !important;
         }
         """
 
@@ -368,28 +468,58 @@ class RAGInterface:
                 """
                 # 🤖 基于大模型和RAG的医学知识问答系统
 
-                基于检索增强生成(RAG)技术的智能对话系统，支持两种对话模式：
+                <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+                            padding: 20px;
+                            border-radius: 12px;
+                            border-left: 4px solid #667eea;
+                            margin-bottom: 20px;">
 
-                ## 🤖 直接对话模式
-                - 无需上传文档，直接与大模型对话
-                - 基于模型训练知识回答问题
+                基于**检索增强生成(RAG)**技术的智能对话系统，支持两种对话模式：
 
-                ## 📚 知识库模式  
-                - 上传PDF文档构建个人知识库
-                - 基于文档内容进行精准回答
+                <table style="width: 100%; margin-top: 15px;">
+                <tr>
+                    <td style="width: 50%; padding: 15px; background: rgba(255,255,255,0.5); border-radius: 10px; margin-right: 10px;">
+                        <h3 style="color: #667eea; margin-top: 0;">🤖 直接对话模式</h3>
+                        <ul style="margin-bottom: 0;">
+                            <li>无需上传文档，直接与大模型对话</li>
+                            <li>基于模型训练知识回答问题</li>
+                        </ul>
+                    </td>
+                    <td style="width: 50%; padding: 15px; background: rgba(255,255,255,0.5); border-radius: 10px;">
+                        <h3 style="color: #764ba2; margin-top: 0;">📚 知识库模式</h3>
+                        <ul style="margin-bottom: 0;">
+                            <li>上传PDF文档构建个人知识库</li>
+                            <li>基于文档内容进行精准回答</li>
+                        </ul>
+                    </td>
+                </tr>
+                </table>
 
-                ## 使用说明：
+                ### 📋 使用说明
+
                 1. 💬 **可直接开始对话** - 无需上传文档
-                2. 📁 上传PDF文档（可选，用于构建知识库）
-                3. ⚙️ 调整生成参数（可选）
-                4. 🔄 可随时清空对话历史
+                2. 📁 **上传PDF文档**（可选，用于构建知识库）
+                3. ⚙️ **调整生成参数**（可选）
+                4. 🔄 **可随时清空对话历史**
+
+                </div>
                 """
             )
 
             with gr.Row():
-                # 左侧：文件上传和系统状态
-                with gr.Column(scale=1):
-                    gr.Markdown("### 📁 文档上传（可选）")
+                # 左侧：文件上传和系统状态 (30%宽度)
+                with gr.Column(scale=3):
+                    gr.Markdown(
+                        """
+                        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                                    padding: 10px;
+                                    border-radius: 8px;
+                                    text-align: center;
+                                    margin-bottom: 15px;">
+                            <h3 style="color: white; margin: 0;">📁 文档管理</h3>
+                        </div>
+                        """
+                    )
 
                     file_upload = gr.File(
                         label="选择PDF文件",
@@ -430,13 +560,13 @@ class RAGInterface:
 
                     status_refresh_btn = gr.Button("🔄 刷新状态")
 
-                # 右侧：对话界面
-                with gr.Column(scale=2):
+                # 右侧：对话界面 (70%宽度)
+                with gr.Column(scale=7):
                     gr.Markdown("### 💬 智能对话")
 
                     chatbot = gr.Chatbot(
                         label="对话历史",
-                        height=500,
+                        height=600,
                         elem_classes=["chat-container"]
                     )
 
@@ -454,11 +584,20 @@ class RAGInterface:
 
                     gr.Markdown(
                         """
-                        ### 💡 使用提示：
-                        - 支持多轮对话，系统会记住上下文
-                        - 回答会显示参考的文档来源
-                        - 可以询问文档中的具体内容
-                        - 支持跨文档的综合性问题
+                        <div style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+                                    padding: 15px;
+                                    border-radius: 10px;
+                                    border-left: 3px solid #667eea;
+                                    margin-top: 15px;">
+
+                        ### 💡 使用提示
+
+                        - ✨ **上下文记忆** - 支持多轮对话，系统会记住上下文
+                        - 📖 **来源追溯** - 回答会显示参考的文档来源
+                        - 🔍 **深度查询** - 可以询问文档中的具体内容
+                        - 🧩 **综合分析** - 支持跨文档的综合性问题
+
+                        </div>
                         """
                     )
 
